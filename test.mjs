@@ -5,13 +5,17 @@ import fetch from "node-fetch";
 main().then();
 
 async function main() {
-  configureGlobalCert();
+  // configureGlobalCert();
   const testUrl = process.env["apps.tinkoffbusiness.wss"] + "/api/v1/nominal-accounts/virtual-accounts/balances";
   const tinkoffToken = process.env["apps.tinkoffbusiness.token_PASSWORD"];
+  const authorization=`Bearer ${tinkoffToken}`;
+  const agent = configureAgent();
+
   const options = {
     headers: {
-      Authorization: `Bearer ${tinkoffToken}`
+      authorization 
     },
+    agent
   };  
   const testRes = await fetch(testUrl, options);
   await checkResponse(testRes);
@@ -38,6 +42,14 @@ function configureGlobalCert() {
 
   Object.assign(https.globalAgent.options, configureCert(certfile, passphrase));
 }
+
+function configureAgent() {
+  const certfile = process.env["apps.tinkoffbusiness.certfile"];
+  const passphrase = process.env["apps.tinkoffbusiness.cert_PASSWORD"];
+
+  return new https.Agent(configureCert(certfile, passphrase));
+}
+
 function configureCert(certfile, passphrase) {
   const cert = certfile ? fs.readFileSync(certfile) : null;
   const certConfig = {
